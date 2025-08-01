@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven3'
+        sonarScanner 'SonarScanner'
+    }
+
+    environment {
+        SONARQUBE_ENV = 'SonarQube'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=my-java-project \
+                      -Dsonar.projectName=MyJavaApp
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and SonarQube analysis succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
