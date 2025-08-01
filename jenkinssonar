@@ -1,0 +1,5 @@
+cd /path/to/your/hello-world1
+echo "pipeline { agent any; stages { stage('Hello') { steps { echo 'Hello World' } } } }" > Jenkinsfile
+git add Jenkinsfile
+git commit -m "Add Jenkinsfile"
+git push origin main  # or use your branch name
